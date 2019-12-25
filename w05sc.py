@@ -129,7 +129,7 @@ class Calculator:
 
     prev_th0 = 1e36
 
-    def scplm(self, index: int, colat: float, nlm: float) -> float:
+    def scplm(self, index: int, colat: float) -> Tuple[float, float]:
         ls = self.reader.ls
         ms = self.reader.ms
         ab = self.reader.ab
@@ -172,7 +172,7 @@ class Calculator:
         tmp = [self.plmtable[i][index] for i in range(self.tablesize)]
 
         out = interpol_quad(tmp, self.colattable[1: self.tablesize], colata)
-        return out[1]
+        return out[1], nlm
 
     def mpfac(self, lat: float, mlt: float, fill: float) -> float:
         """
@@ -223,7 +223,7 @@ class Calculator:
                 break
             # m = ms[j]
             if ab[j] == 1:
-                plm = self.scplm(j, colat, nlm)
+                plm, nlm = self.scplm(j, colat)
                 plm = plm * (nlm * (nlm + 1.))
 
                 if ms[j] == 0:
@@ -273,7 +273,7 @@ class Calculator:
 
             m: int = ms[j]
             if ab[j] == 1:
-                plm = self.scplm(j, colat, nlm)
+                plm, nlm = self.scplm(j, colat)
                 skip = False
                 if m == 0:
                     z = z + plm * self.esphc[j]

@@ -13,8 +13,8 @@ class Reader:
     ls: List[int] = np.zeros(csize)
     ms: List[int] = np.zeros(csize)
 
-    alschfits: List[List[float]] = np.zeros((d2_pot, csize), np.float)
-    schfits: List[List[float]] = np.zeros((d1_pot, csize), np.float)
+    alschfits: List[List[float]] = []
+    schfits: List[List[float]] = []
     ex_pot: List[float] = np.zeros(2, np.float)
 
     maxl_pot: int
@@ -50,12 +50,15 @@ class Reader:
 
         file: TextIO = open(infile)
 
-        _: str = file.read()
-        self.ab: List[int] = [int(file.read()) for i in range(28)]
+        fname: str = file.readline()
+        line = file.readline()
+        self.ab: List[int] = [int(digit) for digit in line.strip().split(' ') if digit != '']
 
-        csize_rd: int = int(file.read())
-        d1_rd: int = int(file.read())
-        d2_rd: int = int(file.read())
+        line = file.readline()
+        [csize_rd, d1_rd, d2_rd] = [int(digit) for digit in line.strip().split(' ')]
+        # csize_rd: int = int(file.read())
+        # d1_rd: int = int(file.read())
+        # d2_rd: int = int(file.read())
 
         assert csize_rd == self.csize, \
             f"('read_potential: file '{infile}': incompatable csize: 'csize_rd=',{csize_rd},' csize=',{self.csize})"
@@ -66,58 +69,91 @@ class Reader:
         assert d2_rd == self.d2_pot, \
             f"(' read_potential: file '{infile}': incompatable d2: ','d2_rd='{d2_rd}' d2_pot='{self.d2_pot})"
 
-        for i in range(self.csize):
-            for j in range(6):
-                self.alschfits[i][j] = float(file.read())
-                pass
+        self.alschfits = []
+        for i in range(self.d2_pot):
+            self.alschfits.append([])
+
+        col = []
+
+        while len(self.alschfits[0]) < self.csize:  # for i in range(self.csize):
+
+            elements = [float(digit) for digit in file.readline().strip().split(' ') if digit != '']
+            col.extend(elements)
+
+            if len(col) == self.d2_pot:
+                for i in range(self.d2_pot):
+                    self.alschfits[i].append(col[i])
+                col = []
+
+            # pass
             pass
 
-        self.ex_pot = [float(file.read()), float(file.read())]
+        line = file.readline()
+        self.ex_pot = [float(digit) for digit in line.strip().split(' ') if digit != '']
 
-        for i in range(self.csize):
-            self.ls[i] = int(file.read())
+        self.ls = [int(char) for char in file.readline().strip().split() if char != '']
+        # for i in range(self.csize):
+        # self.ls[i] = int(file.read())
 
-        self.maxl_pot = int(file.read())
-        self.maxm_pot = int(file.read())
+        [self.maxl_pot, self.maxm_pot] = self.ls = [int(l) for l in file.readline().strip().split() if l != '']
 
-        for i in range(self.csize):
-            self.ms[i] = int(file.read())
+        self.ms = [int(l) for l in file.readline().strip().split() if l != '']
 
-        for i in range(self.csize):
-            for j in range(6):
-                self.schfits[i][j] = float(file.read())
-                pass
+        # for i in range(self.csize):
+        #     self.ms[i] = int(file.read())
+        self.schfits = []
+        for i in range(self.d2_pot):
+            self.schfits.append([])
+
+        col = []
+
+        while len(self.schfits[0]) < self.csize:  # for i in range(self.csize):
+
+            elements = [float(digit) for digit in file.readline().strip().split(' ') if digit != '']
+            col.extend(elements)
+
+            if len(col) == self.d1_pot:
+                for i in range(self.d1_pot):
+                    self.schfits[i].append(col[i])
+                col = []
+
+            # pass
             pass
 
         file.close()
+        print("f1 read")
         return
 
     def read_schatable(self, infile: str):
         file = open(infile)
-        _: str = file.read()
+        _: str = file.readline()
 
-        self.maxk_scha = int(file.read())
-        self.maxm_scha = int(file.read())
+        [self.maxk_scha, self.maxm_scha] = [int(char) for char in file.readline().strip().split() if char != '']
+        # = int(file.read())
 
         for i in range(self.d3_scha):
             for j in range(self.d2_scha):
-                for k in range(6):
-                    self.allnkm[i][j][k] = float(file.read())
+                col = []
+                while len(col) < self.d1_scha:
+                    col.extend([float(char) for char in file.readline().strip().split() if char != ''])
+                for k in range(self.d1_scha):
+                    self.allnkm[k][j][i] = col[k]
                     pass
                 pass
             pass
+        self.th0s = []
+        while len(self.th0s) < self.d3_scha:
+            self.th0s.extend([float(char) for char in file.readline().strip().split() if char != ''])
+            # for i in range(8):
+            #     self.th0s[i] = float(file.read())
 
-        for i in range(8):
-            self.th0s[i] = float(file.read())
-
-        return
+            return
 
     def read_bndy(self, infile: str):
         file = open(infile)
 
-        _: str = file.read()
-        rd_na = int(file.read())
-        rd_nb = int(file.read())
+        _: str = file.readline()
+        [rd_na, rd_nb] = [int(char) for char in file.readline().strip().split() if char != '']
 
         assert rd_na == self.na, \
             f"('read_potential: file '{file}': incompatable na: ','rd_na='{rd_na}' na=',{self.na})"
@@ -125,14 +161,16 @@ class Reader:
         assert rd_nb == self.nb, \
             f"('>>> read_potential: file '{file}': incompatable nb: ','rd_nb='{rd_nb}' nb={self.nb})"
 
-        for i in range(8):
-            self.bndya[i] = float(file.read())
+        self.bndya = [float(char) for char in file.readline().strip().split() if char != '']
+        # for i in range(8):
+        #     self.bndya[i] = float(file.read())
 
-        for i in range(8):
-            self.bndyb[i] = float(file.read())
-
-        for i in range(8):
-            self.ex_bndy[i] = float(file.read())
+        self.bndyb = [float(char) for char in file.readline().strip().split() if char != '']
+        # for i in range(8):
+        #     self.bndyb[i] = float(file.read())
+        self.ex_bndy = [float(char) for char in file.readline().strip().split() if char != '']
+        # for i in range(8):
+        #     self.ex_bndy[i] = float(file.read())
 
         file.close()
         return

@@ -18,8 +18,10 @@ def interpol_quad(v: List[float], x: List[float], u: List[float]) -> List[float]
     nx: int = len(x)
     nu: int = len(u)
 
-    assert nx == nv, f"('>>> interpol_quad: nx /= nv: nx='{nx}' nv='{nv})"
-    p: List[float] = []
+    if nx != nv:
+        print(f"('>>> interpol_quad: nx /= nv: nx='{nx}' nv='{nv})")
+        p: List[float] = [0]*100
+        return p
     for i in range(nu):
         ix: int = value_locate(x, u[i])
         if ix <= 1 or ix >= nx:  # ! bug fix by btf 12/23/09
