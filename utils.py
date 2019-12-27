@@ -17,10 +17,10 @@ def interpol_quad(v: List[float], x: List[float], u: List[float]) -> List[float]
     nv: int = len(v)
     nx: int = len(x)
     nu: int = len(u)
-
+    p: List[float] = [0] * 100
     if nx != nv:
         print(f"('>>> interpol_quad: nx /= nv: nx='{nx}' nv='{nv})")
-        p: List[float] = [0]*100
+
         return p
     for i in range(nu):
         ix: int = value_locate(x, u[i])

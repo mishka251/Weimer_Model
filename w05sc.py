@@ -98,9 +98,9 @@ class Calculator:
     def pm_n(self, m: int, r: float, cth: List[float], table_size: int) -> List[float]:
         a: List[float]
         if m == 0:
-            a = [0]
+            a = [0] * table_size
         else:
-            a = [sqrt(1 - cth[i] ** 2) ** m for i in range(1, table_size + 1)]
+            a = [sqrt(1 - cth[i] ** 2) ** m for i in range(table_size)]
         xn: float = r * (r + 1)
 
         x = [(1 - ct) / 2 for ct in cth]
@@ -108,7 +108,7 @@ class Calculator:
         table: List[float] = a
 
         tmp: List[float] = [10000] * table_size
-        k = 0
+        k = 1
         while max(tmp) > 1e-6:
             for i in range(table_size):
                 a[i] *= (x[i] * ((k + m - 1.) * (k + m) - xn) / (k * (k + m)))
@@ -307,7 +307,7 @@ class Calculator:
         swp: float = swden * swvel ** 2 * 1.6726e-6  # pressure
         self.tilt2: float = tilt ** 2
         cosa: float = cos(radians(angle))
-        btx: float = 1. - exp(-bt * self.reader.ex_bndy[0])
+        btx: float = 1. - exp(-bt * self.reader.ex_bndy[0])#(3) страница 3 пдф
         if (bt > 1.):
             btx = btx * bt ** self.reader.ex_bndy[1]
         else:
@@ -315,7 +315,8 @@ class Calculator:
         # endif
         x = [1., cosa, btx, btx * cosa, swvel, swp]
         c = self.reader.bndya
-        self.bndyfitr = sum([x_i * c_i for x_i, c_i in zip(x, c)])
+        self.bndyfitr = sum([x_i * c_i for x_i, c_i in zip(x, c)])#R (1) стр 3 from Weimer-2005-Journal_of_Geophysical_Research%253A_Space_Physics_%25281978-2012%2529.pdf
+
 
         return
 
