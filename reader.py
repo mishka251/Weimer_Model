@@ -84,7 +84,6 @@ class Reader:
                 for i in range(self.d2_pot):
                     self.alschfits[i].append(col[i])
                 col = []
-
             # pass
             pass
 
@@ -95,7 +94,7 @@ class Reader:
         # for i in range(self.csize):
         # self.ls[i] = int(file.read())
 
-        [self.maxl_pot, self.maxm_pot] = self.ls = [int(l) for l in file.readline().strip().split() if l != '']
+        [self.maxl_pot, self.maxm_pot] = [int(l) for l in file.readline().strip().split() if l != '']
 
         self.ms = [int(l) for l in file.readline().strip().split() if l != '']
 
@@ -146,8 +145,8 @@ class Reader:
             self.th0s.extend([float(char) for char in file.readline().strip().split() if char != ''])
             # for i in range(8):
             #     self.th0s[i] = float(file.read())
-
-            return
+        assert len(self.th0s)==self.d3_scha, "len(self.th0s)!=self.d3_scha"
+        return
 
     def read_bndy(self, infile: str):
         file = open(infile)

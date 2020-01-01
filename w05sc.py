@@ -43,7 +43,7 @@ class Calculator:
         for i in range(3):
             pos[i] = self.tmat[0][i] * a + self.tmat[1][i] * b + self.tmat[2][i] * stc
 
-        latout: float = degrees(asin(pos[0]))
+        latout: float = degrees(asin(pos[2]))
         lonout: float = degrees(atan2(pos[1], pos[0]))
 
         return latout, lonout
@@ -72,8 +72,8 @@ class Calculator:
         if th0 == 90.:
             return float(k)
 
-        kk: int = k + 1
-        mm: int = m + 1
+        #kk: int = k + 1
+        #mm: int = m + 1
 
         th0a: float = th0
 
@@ -83,32 +83,32 @@ class Calculator:
         th0s = self.reader.th0s
         all_nkm = self.reader.allnkm
 
-        if kk >= max_k:
-            print(f"('>>> nkmlookup: kk > maxk: kk='{kk}' maxk='{max_k}")
-            res = interpol_quad(all_nkm[max_k - 1][mm], th0s, [th0a])
-        if mm >= max_m:
-            print(f"('>>> nkmlookup: mm > maxm: kk='{kk}' maxm='{max_m}")
-            res = interpol_quad(all_nkm[kk][max_m - 1], th0s, [th0a])
+        if k >= max_k:
+            print(f"('>>> nkmlookup: kk > maxk: kk='{k}' maxk='{max_k}")
+            res = interpol_quad(all_nkm[max_k - 1][m], th0s, [th0a])
+        if m >= max_m:
+            print(f"('>>> nkmlookup: mm > maxm: kk='{k}' maxm='{max_m}")
+            res = interpol_quad(all_nkm[k][max_m - 1], th0s, [th0a])
         if th0 < th0s[0]:
             print(f"('>>> nkmlookup: th0 < th0s(1): th0='{th0}' th0s(1)='{th0s[0]}")
 
-        res = interpol_quad(all_nkm[kk][mm], th0s, [th0a])
+        res = interpol_quad(all_nkm[k][m], th0s, [th0a])
         return res[0]
 
     def pm_n(self, m: int, r: float, cth: List[float], table_size: int) -> List[float]:
         a: List[float]
         if m == 0:
-            a = [0]
+            a = [1]*table_size
         else:
-            a = [sqrt(1 - cth[i] ** 2) ** m for i in range(1, table_size + 1)]
+            a = [sqrt(1 - ct ** 2) ** m for ct in cth]
         xn: float = r * (r + 1)
 
         x = [(1 - ct) / 2 for ct in cth]
 
-        table: List[float] = a
+        table: List[float] = [1]*table_size
 
         tmp: List[float] = [10000] * table_size
-        k = 0
+        k = 1
         while max(tmp) > 1e-6:
             for i in range(table_size):
                 a[i] *= (x[i] * ((k + m - 1.) * (k + m) - xn) / (k * (k + m)))
@@ -141,8 +141,8 @@ class Calculator:
             assert self.tablesize <= self.mxtablesize, \
                 f"('>>> tablesize > mxtablesize: tablesize={self.tablesize} mxtablesize={self.mxtablesize} tn0={th0}"
 
-            colattable = [float(i - 1) * (th0 / float(self.tablesize - 1)) for i in range(self.tablesize)]
-            cth = [cos(degrees(col)) for col in colattable]
+            self.colattable = [i*(th0 / float(self.tablesize - 1)) for i in range(self.tablesize)]
+            cth = [cos(radians(col)) for col in self.colattable]
             self.prev_th0 = th0
             nlms = [0] * self.reader.csize
 
@@ -151,7 +151,7 @@ class Calculator:
                     skip = False
                     continue
                     pass
-                nlms.append(self.nkmlookup(ls[j], ms[j], th0))
+                nlms[j]= self.nkmlookup(ls[j], ms[j], th0)
                 tmp: List[float] = self.pm_n(ms[j], nlms[j], cth, self.tablesize)
                 for _i in range(self.tablesize):
                     self.plmtable[_i][index] = tmp[_i]
@@ -172,7 +172,7 @@ class Calculator:
         tmp = [self.plmtable[i][index] for i in range(self.tablesize)]
 
         out = interpol_quad(tmp, self.colattable[1: self.tablesize], colata)
-        return out[1], nlm
+        return out[0], nlm
 
     def mpfac(self, lat: float, mlt: float, fill: float) -> float:
         """

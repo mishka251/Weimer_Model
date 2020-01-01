@@ -1,5 +1,5 @@
-from cmath import exp
-from math import sqrt, factorial, log
+#from cmath import exp
+from math import sqrt, factorial, log, exp
 from typing import List
 
 
@@ -17,15 +17,15 @@ def interpol_quad(v: List[float], x: List[float], u: List[float]) -> List[float]
     nv: int = len(v)
     nx: int = len(x)
     nu: int = len(u)
-
+    p: List[float] = [0] * nu
     if nx != nv:
         print(f"('>>> interpol_quad: nx /= nv: nx='{nx}' nv='{nv})")
-        p: List[float] = [0]*100
+
         return p
     for i in range(nu):
         ix: int = value_locate(x, u[i])
         if ix <= 1 or ix >= nx:  # ! bug fix by btf 12/23/09
-            p.append(0.)
+            p[i]=0
             continue  # cycle                       ! bug fix by btf 12/23/09
         # endif
         x1 = x[ix]
@@ -35,7 +35,7 @@ def interpol_quad(v: List[float], x: List[float], u: List[float]) -> List[float]
               v[ix] * (u[i] - x0) * (u[i] - x2) / ((x1 - x0) * (x1 - x2)) + \
               v[ix + 1] * (u[i] - x0) * (u[i] - x1) / ((x2 - x0) * (x2 - x1))
 
-        p.append(p_i)
+        p[i] = p_i
     return p
 
 
