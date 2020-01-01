@@ -9,9 +9,9 @@ class Reader:
     d1_pot: int = 15  # const
     d2_pot: int = 18  # const
 
-    ab: List[int] = np.zeros(csize)
-    ls: List[int] = np.zeros(csize)
-    ms: List[int] = np.zeros(csize)
+    ab: List[int] = []#np.zeros(csize)
+    ls: List[int] = []#np.zeros(csize)
+    ms: List[int] = []#np.zeros(csize)
 
     alschfits: List[List[float]] = []
     schfits: List[List[float]] = []
@@ -38,9 +38,9 @@ class Reader:
     na: int = 6  # const
     nb: int = 7  # const
 
-    bndya: List[float] = np.zeros(na)
-    bndyb: List[float] = np.zeros(nb)
-    ex_bndy: List[float] = np.zeros(2)
+    bndya: List[float] = []#np.zeros(na)
+    bndyb: List[float] = []#np.zeros(nb)
+    ex_bndy: List[float] = []#np.zeros(2)
 
     def read_potential(self, infile: str):
         """
@@ -97,7 +97,11 @@ class Reader:
         # for i in range(self.csize):
         # self.ls[i] = int(file.read())
 
-        [self.maxl_pot, self.maxm_pot] = self.ls = [int(l) for l in file.readline().strip().split() if l != '']
+        [self.maxl_pot, self.maxm_pot] = [int(l) for l in file.readline().strip().split() if l != '']
+
+        self.ms = []
+        while len(self.ms) < self.csize:
+            self.ms.extend([int(l) for l in file.readline().strip().split() if l != ''])
 
         assert len(self.ls) == self.csize, "ls!=csize"
         assert len(self.ms) == self.csize, "ms!=csize"
