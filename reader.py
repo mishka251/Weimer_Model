@@ -84,20 +84,23 @@ class Reader:
                 for i in range(self.d2_pot):
                     self.alschfits[i].append(col[i])
                 col = []
+
             # pass
             pass
 
         line = file.readline()
         self.ex_pot = [float(digit) for digit in line.strip().split(' ') if digit != '']
 
-        self.ls = [int(char) for char in file.readline().strip().split() if char != '']
+        self.ls = []
+        while len(self.ls) < self.csize:
+            self.ls.extend([int(char) for char in file.readline().strip().split() if char != ''])
         # for i in range(self.csize):
         # self.ls[i] = int(file.read())
 
-        [self.maxl_pot, self.maxm_pot] = [int(l) for l in file.readline().strip().split() if l != '']
+        [self.maxl_pot, self.maxm_pot] = self.ls = [int(l) for l in file.readline().strip().split() if l != '']
 
-        self.ms = [int(l) for l in file.readline().strip().split() if l != '']
-
+        assert len(self.ls) == self.csize, "ls!=csize"
+        assert len(self.ms) == self.csize, "ms!=csize"
         # for i in range(self.csize):
         #     self.ms[i] = int(file.read())
         self.schfits = []
@@ -140,12 +143,17 @@ class Reader:
                     pass
                 pass
             pass
+
+        assert len(self.allnkm) == self.d1_scha, "d1_scha"
+        assert all(map(lambda l: len(l) == self.d2_scha, self.allnkm)), "d2_scha"
+        assert all(map(lambda l2: all(map(lambda l: len(l) == self.d3_scha, l2)), self.allnkm)), "d3_scha"
+
         self.th0s = []
         while len(self.th0s) < self.d3_scha:
             self.th0s.extend([float(char) for char in file.readline().strip().split() if char != ''])
             # for i in range(8):
             #     self.th0s[i] = float(file.read())
-        assert len(self.th0s)==self.d3_scha, "len(self.th0s)!=self.d3_scha"
+        assert len(self.th0s) == self.d3_scha, "th0s"
         return
 
     def read_bndy(self, infile: str):
@@ -163,11 +171,15 @@ class Reader:
         self.bndya = [float(char) for char in file.readline().strip().split() if char != '']
         # for i in range(8):
         #     self.bndya[i] = float(file.read())
+        assert len(self.bndya) == self.na
 
         self.bndyb = [float(char) for char in file.readline().strip().split() if char != '']
+
+        assert len(self.bndyb) == self.nb
         # for i in range(8):
         #     self.bndyb[i] = float(file.read())
         self.ex_bndy = [float(char) for char in file.readline().strip().split() if char != '']
+        assert len(self.ex_bndy) == 2
         # for i in range(8):
         #     self.ex_bndy[i] = float(file.read())
 

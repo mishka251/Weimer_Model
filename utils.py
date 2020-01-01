@@ -1,5 +1,5 @@
-#from cmath import exp
-from math import sqrt, factorial, log, exp
+from cmath import exp
+from math import sqrt, factorial, log
 from typing import List
 
 
@@ -17,7 +17,7 @@ def interpol_quad(v: List[float], x: List[float], u: List[float]) -> List[float]
     nv: int = len(v)
     nx: int = len(x)
     nu: int = len(u)
-    p: List[float] = [0] * nu
+    p: List[float] = [0] * 100
     if nx != nv:
         print(f"('>>> interpol_quad: nx /= nv: nx='{nx}' nv='{nv})")
 
