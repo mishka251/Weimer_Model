@@ -72,8 +72,8 @@ class Calculator:
         if th0 == 90.:
             return float(k)
 
-        #kk: int = k + 1
-        #mm: int = m + 1
+        # kk: int = k + 1
+        # mm: int = m + 1
 
         th0a: float = th0
 
@@ -98,14 +98,14 @@ class Calculator:
     def pm_n(self, m: int, r: float, cth: List[float], table_size: int) -> List[float]:
         a: List[float]
         if m == 0:
-            a = [1]*table_size
+            a = [1] * table_size
         else:
             a = [sqrt(1 - ct ** 2) ** m for ct in cth]
         xn: float = r * (r + 1)
 
         x = [(1 - ct) / 2 for ct in cth]
 
-        table: List[float] = [1]*table_size
+        table: List[float] = [1] * table_size
 
         tmp: List[float] = [10000] * table_size
         k = 1
@@ -141,7 +141,7 @@ class Calculator:
             assert self.tablesize <= self.mxtablesize, \
                 f"('>>> tablesize > mxtablesize: tablesize={self.tablesize} mxtablesize={self.mxtablesize} tn0={th0}"
 
-            self.colattable = [i*(th0 / float(self.tablesize - 1)) for i in range(self.tablesize)]
+            self.colattable = [i * (th0 / float(self.tablesize - 1)) for i in range(self.tablesize)]
             cth = [cos(radians(col)) for col in self.colattable]
             self.prev_th0 = th0
             nlms = [0] * self.reader.csize
@@ -151,7 +151,7 @@ class Calculator:
                     skip = False
                     continue
                     pass
-                nlms[j]= self.nkmlookup(ls[j], ms[j], th0)
+                nlms[j] = self.nkmlookup(ls[j], ms[j], th0)
                 tmp: List[float] = self.pm_n(ms[j], nlms[j], cth, self.tablesize)
                 for _i in range(self.tablesize):
                     self.plmtable[_i][index] = tmp[_i]
@@ -171,7 +171,7 @@ class Calculator:
 
         tmp = [self.plmtable[i][index] for i in range(self.tablesize)]
 
-        out = interpol_quad(tmp, self.colattable[1: self.tablesize], colata)
+        out = interpol_quad(tmp, self.colattable[0: self.tablesize], colata)
         return out[0], nlm
 
     def mpfac(self, lat: float, mlt: float, fill: float) -> float:
@@ -229,7 +229,11 @@ class Calculator:
                 if ms[j] == 0:
                     z = z - plm * self.bsphc[j]
                 else:
-                    z = z - (plm * (self.bsphc[j] * cospm[ms[j]] + self.bsphc[j + 1] * sinpm[ms[j]]))
+                    try:
+                        z = z - (plm * (self.bsphc[j] * cospm[ms[j] - 1] + self.bsphc[j + 1] * sinpm[ms[j] - 1]))
+                    except IndexError:
+                        print(f"IndexError j={j} ms={ms} cospm={cospm}")
+                        assert False
                     skip = True
 
         pi = 4. * atan(1.)
@@ -278,7 +282,11 @@ class Calculator:
                 if m == 0:
                     z = z + plm * self.esphc[j]
                 else:
-                    z = z + plm * (self.esphc[j] * cospm[m] + self.esphc[j + 1] * sinpm[m])
+                    try:
+                        z = z + plm * (self.esphc[j] * cospm[m - 1] + self.esphc[j + 1] * sinpm[m - 1])
+                    except IndexError:
+                        print(f"IndexError j={j} m={m} esphc={self.esphc} cospm={cospm} sinpm={sinpm}")
+                        assert False
                     skip = True
 
         return z
@@ -307,7 +315,7 @@ class Calculator:
         swp: float = swden * swvel ** 2 * 1.6726e-6  # pressure
         self.tilt2: float = tilt ** 2
         cosa: float = cos(radians(angle))
-        btx: float = 1. - exp(-bt * self.reader.ex_bndy[0])#(3) страница 3 пдф
+        btx: float = 1. - exp(-bt * self.reader.ex_bndy[0])  # (3) страница 3 пдф
         if (bt > 1.):
             btx = btx * bt ** self.reader.ex_bndy[1]
         else:
@@ -315,8 +323,8 @@ class Calculator:
         # endif
         x = [1., cosa, btx, btx * cosa, swvel, swp]
         c = self.reader.bndya
-        self.bndyfitr = sum([x_i * c_i for x_i, c_i in zip(x, c)])#R (1) стр 3 from Weimer-2005-Journal_of_Geophysical_Research%253A_Space_Physics_%25281978-2012%2529.pdf
-
+        self.bndyfitr = sum([x_i * c_i for x_i, c_i in zip(x,
+                                                           c)])  # R (1) стр 3 from Weimer-2005-Journal_of_Geophysical_Research%253A_Space_Physics_%25281978-2012%2529.pdf
 
         return
 
