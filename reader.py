@@ -42,6 +42,30 @@ class Reader:
     bndyb: List[float] = []  # np.zeros(nb)
     ex_bndy: List[float] = []  # np.zeros(2)
 
+    def read_1dim_array(self, file: TextIO, length: int, T: type) -> List:
+        result = []
+        while len(result) < length:
+            result.extend([T(char) for char in file.readline().strip().split() if char != ''])
+        return result
+
+    def read_2dim_array(self, file: TextIO, length_1dim: int, length_2dim: int, T: type) -> List[List]:
+        result = []
+        for i in range(length_2dim):
+            result.append([])
+
+        col = []
+        while len(result[0]) < length_1dim:
+
+            elements = [T(digit) for digit in file.readline().strip().split(' ') if digit != '']
+            col.extend(elements)
+
+            if len(col) == length_2dim:
+                for i in range(length_2dim):
+                    result[i].append(col[i])
+                col = []
+            pass
+        return result
+
     def read_potential(self, infile: str):
         """
          Read ascii data file W05scEpot.dat or W05scBpot.dat, written by
@@ -51,14 +75,10 @@ class Reader:
         file: TextIO = open(infile)
 
         fname: str = file.readline()
-        line = file.readline()
-        self.ab: List[int] = [int(digit) for digit in line.strip().split(' ') if digit != '']
 
-        line = file.readline()
-        [csize_rd, d1_rd, d2_rd] = [int(digit) for digit in line.strip().split(' ')]
-        # csize_rd: int = int(file.read())
-        # d1_rd: int = int(file.read())
-        # d2_rd: int = int(file.read())
+        self.ab: List[int] = [int(digit) for digit in file.readline().strip().split(' ') if digit != '']
+
+        [csize_rd, d1_rd, d2_rd] = [int(digit) for digit in file.readline().strip().split(' ')]
 
         assert csize_rd == self.csize, \
             f"('read_potential: file '{infile}': incompatable csize: 'csize_rd=',{csize_rd},' csize=',{self.csize})"
@@ -69,65 +89,23 @@ class Reader:
         assert d2_rd == self.d2_pot, \
             f"(' read_potential: file '{infile}': incompatable d2: ','d2_rd='{d2_rd}' d2_pot='{self.d2_pot})"
 
-        self.alschfits = []
-        for i in range(self.d2_pot):
-            self.alschfits.append([])
-
-        col = []
-
-        while len(self.alschfits[0]) < self.csize:  # for i in range(self.csize):
-
-            elements = [float(digit) for digit in file.readline().strip().split(' ') if digit != '']
-            col.extend(elements)
-
-            if len(col) == self.d2_pot:
-                for i in range(self.d2_pot):
-                    self.alschfits[i].append(col[i])
-                col = []
-
-            # pass
-            pass
+        self.alschfits = self.read_2dim_array(file, self.csize, self.d2_pot, float)  # []
 
         line = file.readline()
         self.ex_pot = [float(digit) for digit in line.strip().split(' ') if digit != '']
 
-        self.ls = []
-        while len(self.ls) < self.csize:
-            self.ls.extend([int(char) for char in file.readline().strip().split() if char != ''])
-        # for i in range(self.csize):
-        # self.ls[i] = int(file.read())
+        self.ls = self.read_1dim_array(file, self.csize, int)  # []
 
         [self.maxl_pot, self.maxm_pot] = [int(l) for l in file.readline().strip().split() if l != '']
 
-        self.ms = []
-        while len(self.ms) < self.csize:
-            self.ms.extend([int(l) for l in file.readline().strip().split() if l != ''])
+        self.ms = self.read_1dim_array(file, self.csize, int)  # []
 
         assert len(self.ls) == self.csize, "ls!=csize"
         assert len(self.ms) == self.csize, "ms!=csize"
-        # for i in range(self.csize):
-        #     self.ms[i] = int(file.read())
-        self.schfits = []
-        for i in range(self.d2_pot):
-            self.schfits.append([])
-
-        col = []
-
-        while len(self.schfits[0]) < self.csize:  # for i in range(self.csize):
-
-            elements = [float(digit) for digit in file.readline().strip().split(' ') if digit != '']
-            col.extend(elements)
-
-            if len(col) == self.d1_pot:
-                for i in range(self.d1_pot):
-                    self.schfits[i].append(col[i])
-                col = []
-
-            # pass
-            pass
+        self.schfits = self.read_2dim_array(file, self.csize, self.d1_pot, float)  # []
 
         file.close()
-        print("f1 read")
+        print(f"file {infile} readed")
         return
 
     def read_schatable(self, infile: str):
@@ -135,7 +113,6 @@ class Reader:
         _: str = file.readline()
 
         [self.maxk_scha, self.maxm_scha] = [int(char) for char in file.readline().strip().split() if char != '']
-        # = int(file.read())
 
         for i in range(self.d3_scha):
             for j in range(self.d2_scha):
@@ -152,12 +129,10 @@ class Reader:
         assert all(map(lambda l: len(l) == self.d2_scha, self.allnkm)), "d2_scha"
         assert all(map(lambda l2: all(map(lambda l: len(l) == self.d3_scha, l2)), self.allnkm)), "d3_scha"
 
-        self.th0s = []
-        while len(self.th0s) < self.d3_scha:
-            self.th0s.extend([float(char) for char in file.readline().strip().split() if char != ''])
-            # for i in range(8):
-            #     self.th0s[i] = float(file.read())
+        self.th0s = self.read_1dim_array(file, self.d3_scha, float)
+
         assert len(self.th0s) == self.d3_scha, "th0s"
+        print(f"file {infile} readed")
         return
 
     def read_bndy(self, infile: str):
@@ -173,19 +148,14 @@ class Reader:
             f"('>>> read_potential: file '{file}': incompatable nb: ','rd_nb='{rd_nb}' nb={self.nb})"
 
         self.bndya = [float(char) for char in file.readline().strip().split() if char != '']
-        # for i in range(8):
-        #     self.bndya[i] = float(file.read())
         assert len(self.bndya) == self.na
 
         self.bndyb = [float(char) for char in file.readline().strip().split() if char != '']
-
         assert len(self.bndyb) == self.nb
-        # for i in range(8):
-        #     self.bndyb[i] = float(file.read())
+
         self.ex_bndy = [float(char) for char in file.readline().strip().split() if char != '']
         assert len(self.ex_bndy) == 2
-        # for i in range(8):
-        #     self.ex_bndy[i] = float(file.read())
 
         file.close()
+        print(f"file {infile} readed")
         return
