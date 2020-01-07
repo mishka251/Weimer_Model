@@ -74,7 +74,7 @@ class Reader:
 
         file: TextIO = open(infile)
 
-        fname: str = file.readline()
+        _: str = file.readline()
 
         self.ab: List[int] = [int(digit) for digit in file.readline().strip().split(' ') if digit != '']
 
@@ -91,8 +91,7 @@ class Reader:
 
         self.alschfits = self.read_2dim_array(file, self.csize, self.d2_pot, float)  # []
 
-        line = file.readline()
-        self.ex_pot = [float(digit) for digit in line.strip().split(' ') if digit != '']
+        self.ex_pot = [float(digit) for digit in file.readline().strip().split(' ') if digit != '']
 
         self.ls = self.read_1dim_array(file, self.csize, int)  # []
 
