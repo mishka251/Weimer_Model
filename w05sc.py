@@ -1,4 +1,4 @@
-from math import pi, sqrt, atan2, radians, degrees, sin, exp, cos, atan, log, asin, factorial
+from math import pi, sqrt, atan2, radians, degrees, sin, exp, cos, asin
 from typing import List, Tuple
 
 from reader import Reader
@@ -13,14 +13,10 @@ class Calculator:
     esphc: List[float] = [0] * reader.csize
     bsphc: List[float] = [0] * reader.csize
     tmat: List[List[float]] = np.zeros((3, 3), np.float)
-    #ttmat: List[List[float]] = np.zeros((3, 3), np.float) не используется
-    #
     mxtablesize: int = 200
 
-    #
     plmtable: List[List[float]] = np.zeros((mxtablesize, reader.csize))
     colattable: List[float] = np.zeros(mxtablesize, np.float)
-    #
     nlms: List[float] = np.zeros(reader.csize, np.float)
 
     def do_rotation(self, latin: float, lonin: float) -> Tuple[float, float]:
@@ -82,25 +78,10 @@ class Calculator:
         if th0 == 90.:
             return float(k)
 
-        # kk: int = k + 1
-        # mm: int = m + 1
-
         th0a: float = th0
 
-        # res: List[float] = []
-        # max_k = self.reader.maxk_scha
-        # max_m = self.reader.maxm_scha
         th0s: List[float] = self.reader.th0s
         all_nkm: List[List[List[float]]] = self.reader.allnkm
-
-        # if k >= max_k: #не используемый код
-        #     print(f"('>>> nkmlookup: kk > maxk: kk='{k}' maxk='{max_k}")
-        #     res = interpol_quad(all_nkm[max_k - 1][m], th0s, [th0a])
-        # if m >= max_m:
-        #     print(f"('>>> nkmlookup: mm > maxm: kk='{k}' maxm='{max_m}")
-        #     res = interpol_quad(all_nkm[k][max_m - 1], th0s, [th0a])
-        # if th0 < th0s[0]:
-        #     print(f"('>>> nkmlookup: th0 < th0s(1): th0='{th0}' th0s(1)='{th0s[0]}")
 
         res: List[float] = interpol_quad(all_nkm[k][m], th0s, [th0a])
         return res[0]
@@ -151,7 +132,6 @@ class Calculator:
         ls = self.reader.ls
         ms = self.reader.ms
         ab = self.reader.ab
-        # nlms:List[float] = [0]
         skip: bool = False
         th0 = self.bndyfitr
         if self.prev_th0 != th0:
@@ -162,7 +142,7 @@ class Calculator:
             self.colattable = [i * (th0 / float(self.tablesize - 1)) for i in range(self.tablesize)]
             cth = [cos(radians(col)) for col in self.colattable]
             self.prev_th0 = th0
-            self.nlms:List[float] = [0] * self.reader.csize
+            self.nlms: List[float] = [0] * self.reader.csize
 
             for j in range(self.reader.csize):
                 if skip:
@@ -194,42 +174,37 @@ class Calculator:
 
     def mpfac(self, lat: float, mlt: float, fill: float) -> float:
         """
-
+        Вычисление чеего-то в заданной точке
         :param lat:
         :param mlt:
         :param fill:
         :return: fac:float
         """
-        ls = self.reader.ls
+        ls = self.reader.ls  # сокращения для констант из файла
         ms = self.reader.ms
         ab = self.reader.ab
         csize = self.reader.csize
+        re: float = 6371.2 + 110.  # km radius (allow default ht=110) радиус Земли?
 
         m: int
         inside: int
 
         cfactor: float
 
-        re: float
-        z: float
         phir: float
         plm: float
         colat: float
-        nlm: float = 0
-
-        re = 6371.2 + 110.  # km radius (allow default ht=110)
 
         inside, phir, colat = self.checkinputs(lat, mlt)
 
-        if (inside == 0):
+        if inside == 0:
             return fill
 
         phim: List[float] = [phir, phir * 2]
         cospm: List[float] = [cos(phi) for phi in phim]
         sinpm: List[float] = [sin(phi) for phi in phim]
 
-        z = 0.
-        # jloop: do
+        z: float = 0.
         skip: bool = False
         for j in range(csize):
             if skip:
@@ -266,7 +241,7 @@ class Calculator:
         :return: epot:float
         """
 
-        csize = self.reader.csize
+        csize = self.reader.csize  # сокращения для констант из файла
         ms = self.reader.ms
         ab = self.reader.ab
         inside, phir, colat = self.checkinputs(lat, mlt)
@@ -321,11 +296,6 @@ class Calculator:
                      [0., 1., 0.],
                      [-st, 0., ct],
                      ]
-
-        # self.ttmat = [[ct, 0., -st], не используется
-        #               [0., 1., 0.],
-        #               [st, 0., ct],
-        #               ]
 
         PSW: float = swden * swvel ** 2 * 1.6726e-6  # pressure swp давление солнечного ветра?
         self.tilt2: float = tilt ** 2
