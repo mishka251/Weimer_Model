@@ -1,9 +1,9 @@
-from math import sqrt, atan2, radians, degrees, sin, exp, cos, atan, log, asin, factorial
+from math import pi, sqrt, atan2, radians, degrees, sin, exp, cos, atan, log, asin, factorial
 from typing import List, Tuple
 
 from reader import Reader
 import numpy as np
-from utils import value_locate, interpol_quad, lngamma, km_n
+from utils import interpol_quad, km_n
 
 
 class Calculator:
@@ -13,7 +13,7 @@ class Calculator:
     esphc: List[float] = [0] * reader.csize
     bsphc: List[float] = [0] * reader.csize
     tmat: List[List[float]] = np.zeros((3, 3), np.float)
-    ttmat: List[List[float]] = np.zeros((3, 3), np.float)
+    #ttmat: List[List[float]] = np.zeros((3, 3), np.float) не используется
     #
     mxtablesize: int = 200
 
@@ -25,23 +25,26 @@ class Calculator:
 
     def do_rotation(self, latin: float, lonin: float) -> Tuple[float, float]:
         """
-        :param latin:
-        :param lonin:
+        Поворот, преобразование широты долгота(в градусах)
+        В широта, долгота в градусах
+        :param latin: широта в градусах
+        :param lonin: долгато в традусах
         :return:latout,lonout
         """
-        pos = np.zeros(3)
 
         latr: float = radians(latin)
-        lonr: float = degrees(lonin)
+        lonr: float = radians(lonin)
+
         stc: float = sin(latr)
         ctc: float = cos(latr)
+
         sf: float = sin(lonr)
         cf: float = cos(lonr)
+
         a: float = ctc * cf
         b: float = ctc * sf
 
-        for i in range(3):
-            pos[i] = self.tmat[0][i] * a + self.tmat[1][i] * b + self.tmat[2][i] * stc
+        pos: np.ndarray = np.dot([a, b, stc], self.tmat)
 
         latout: float = degrees(asin(pos[2]))
         lonout: float = degrees(atan2(pos[1], pos[0]))
@@ -50,8 +53,8 @@ class Calculator:
 
     def checkinputs(self, lat: float, mlt: float) -> Tuple[int, float, float]:
         """
-
-        :param lat:
+        ???
+        :param lat: широта
         :param mlt:
         :return:  inside: int, phir: float, colat: float
         """
@@ -69,6 +72,13 @@ class Calculator:
         return inside, phir, colat
 
     def nkmlookup(self, k: int, m: int, th0: float) -> float:
+        """
+        ???
+        :param k:
+        :param m:
+        :param th0:
+        :return:
+        """
         if th0 == 90.:
             return float(k)
 
@@ -77,25 +87,33 @@ class Calculator:
 
         th0a: float = th0
 
-        res: List[float] = []
-        max_k = self.reader.maxk_scha
-        max_m = self.reader.maxm_scha
-        th0s = self.reader.th0s
-        all_nkm = self.reader.allnkm
+        # res: List[float] = []
+        # max_k = self.reader.maxk_scha
+        # max_m = self.reader.maxm_scha
+        th0s: List[float] = self.reader.th0s
+        all_nkm: List[List[List[float]]] = self.reader.allnkm
 
-        if k >= max_k:
-            print(f"('>>> nkmlookup: kk > maxk: kk='{k}' maxk='{max_k}")
-            res = interpol_quad(all_nkm[max_k - 1][m], th0s, [th0a])
-        if m >= max_m:
-            print(f"('>>> nkmlookup: mm > maxm: kk='{k}' maxm='{max_m}")
-            res = interpol_quad(all_nkm[k][max_m - 1], th0s, [th0a])
-        if th0 < th0s[0]:
-            print(f"('>>> nkmlookup: th0 < th0s(1): th0='{th0}' th0s(1)='{th0s[0]}")
+        # if k >= max_k: #не используемый код
+        #     print(f"('>>> nkmlookup: kk > maxk: kk='{k}' maxk='{max_k}")
+        #     res = interpol_quad(all_nkm[max_k - 1][m], th0s, [th0a])
+        # if m >= max_m:
+        #     print(f"('>>> nkmlookup: mm > maxm: kk='{k}' maxm='{max_m}")
+        #     res = interpol_quad(all_nkm[k][max_m - 1], th0s, [th0a])
+        # if th0 < th0s[0]:
+        #     print(f"('>>> nkmlookup: th0 < th0s(1): th0='{th0}' th0s(1)='{th0s[0]}")
 
-        res = interpol_quad(all_nkm[k][m], th0s, [th0a])
+        res: List[float] = interpol_quad(all_nkm[k][m], th0s, [th0a])
         return res[0]
 
     def pm_n(self, m: int, r: float, cth: List[float], table_size: int) -> List[float]:
+        """
+        ???
+        :param m:
+        :param r:
+        :param cth:
+        :param table_size:
+        :return:
+        """
         a: List[float]
         if m == 0:
             a = [1] * table_size
@@ -105,7 +123,7 @@ class Calculator:
 
         x = [(1 - ct) / 2 for ct in cth]
 
-        table: List[float] = [1] * table_size
+        table: List[float] = [a_i for a_i in a]
 
         tmp: List[float] = [10000] * table_size
         k = 1
@@ -144,23 +162,23 @@ class Calculator:
             self.colattable = [i * (th0 / float(self.tablesize - 1)) for i in range(self.tablesize)]
             cth = [cos(radians(col)) for col in self.colattable]
             self.prev_th0 = th0
-            nlms = [0] * self.reader.csize
+            self.nlms:List[float] = [0] * self.reader.csize
 
             for j in range(self.reader.csize):
                 if skip:
                     skip = False
                     continue
                     pass
-                nlms[j] = self.nkmlookup(ls[j], ms[j], th0)
-                tmp: List[float] = self.pm_n(ms[j], nlms[j], cth, self.tablesize)
+                self.nlms[j] = self.nkmlookup(ls[j], ms[j], th0)
+                tmp: List[float] = self.pm_n(ms[j], self.nlms[j], cth, self.tablesize)
                 for _i in range(self.tablesize):
-                    self.plmtable[_i][index] = tmp[_i]
+                    self.plmtable[_i][j] = tmp[_i]
                     pass
                 skip = False
 
-                if ms[j] == 0 and ab[j] > 0:
+                if ms[j] != 0 and ab[j] > 0:
                     self.plmtable[0][j + 1] = self.plmtable[0][j]
-                    nlms[j + 1] = nlms[j]
+                    self.nlms[j + 1] = self.nlms[j]
                     skip = True
                     pass
                 pass  # end for
@@ -171,7 +189,7 @@ class Calculator:
 
         tmp = [self.plmtable[i][index] for i in range(self.tablesize)]
 
-        out = interpol_quad(tmp, self.colattable[0: self.tablesize], colata)
+        out = interpol_quad(tmp, self.colattable, colata)
         return out[0], nlm
 
     def mpfac(self, lat: float, mlt: float, fill: float) -> float:
@@ -198,7 +216,6 @@ class Calculator:
         plm: float
         colat: float
         nlm: float = 0
-        # pi:float
 
         re = 6371.2 + 110.  # km radius (allow default ht=110)
 
@@ -236,32 +253,25 @@ class Calculator:
                         assert False
                     skip = True
 
-        pi = 4. * atan(1.)
         cfactor = -1.e5 / (4. * pi * re ** 2)  # convert to uA/m2
         z = z * cfactor
         return z
 
     def epotval(self, lat: float, mlt: float, fill: float) -> float:
         """
-
-        :param lat:
-        :param mlt:
+        Расчёт чего-то в заданной точке
+        :param lat:широта(градусы)
+        :param mlt: долгота(?)
         :param fill:
-        :param epot:
-        :return: erot:float
+        :return: epot:float
         """
-
-        # phir: float
-        plm: float
-        # colat: float
-        nlm: float
 
         csize = self.reader.csize
         ms = self.reader.ms
         ab = self.reader.ab
         inside, phir, colat = self.checkinputs(lat, mlt)
 
-        if (inside == 0):
+        if inside == 0:
             return fill
 
         phim: List[float] = [phir, phir * 2]
@@ -277,27 +287,32 @@ class Calculator:
 
             m: int = ms[j]
             if ab[j] == 1:
-                plm, nlm = self.scplm(j, colat)
+                plm, _ = self.scplm(j, colat)
                 skip = False
                 if m == 0:
                     z = z + plm * self.esphc[j]
                 else:
-                    try:
-                        z = z + plm * (self.esphc[j] * cospm[m - 1] + self.esphc[j + 1] * sinpm[m - 1])
-                    except IndexError:
-                        print(f"IndexError j={j} m={m} esphc={self.esphc} cospm={cospm} sinpm={sinpm}")
-                        assert False
+                    z = z + plm * (self.esphc[j] * cospm[m - 1] + self.esphc[j + 1] * sinpm[m - 1])
                     skip = True
 
         return z
 
     def setboundary(self, angle: float, bt: float, tilt: float, swvel: float, swden: float, file_path: str):
-        btx: float
+        """
+        Инициализация модели: чтение констант из файла
+        :param angle:
+        :param bt:
+        :param tilt:
+        :param swvel:
+        :param swden:
+        :param file_path: путь к папке с файлами
+        :return:
+        """
         self.reader.read_bndy(file_path + '//W05scBndy.dat')
 
         # Calculate the transformation matrix to the coordinate system
         # of the offset pole.
-        xc: float = 4.2
+        xc: float = 4.2  # 4.2 градуса, константа. СМ 3 страница ПДФ
         theta: float = radians(xc)
         ct: float = cos(theta)
         st: float = sin(theta)
@@ -307,32 +322,43 @@ class Calculator:
                      [-st, 0., ct],
                      ]
 
-        self.ttmat = [[ct, 0., -st],
-                      [0., 1., 0.],
-                      [st, 0., ct],
-                      ]
+        # self.ttmat = [[ct, 0., -st], не используется
+        #               [0., 1., 0.],
+        #               [st, 0., ct],
+        #               ]
 
-        swp: float = swden * swvel ** 2 * 1.6726e-6  # pressure
+        PSW: float = swden * swvel ** 2 * 1.6726e-6  # pressure swp давление солнечного ветра?
         self.tilt2: float = tilt ** 2
-        cosa: float = cos(radians(angle))
-        btx: float = 1. - exp(-bt * self.reader.ex_bndy[0])  # (3) страница 3 пдф
-        if (bt > 1.):
-            btx = btx * bt ** self.reader.ex_bndy[1]
+        cos_teta: float = cos(radians(angle))
+        E_bt: float = 1. - exp(-bt * self.reader.ex_bndy[0])  # (3) страница 3 пдф btx E(Bt)
+        if bt > 1.:
+            E_bt = E_bt * bt ** self.reader.ex_bndy[1]
         else:
-            cosa = 1. + bt * (cosa - 1.)  # remove angle dependency for IMF under 1 nT
+            cos_teta = 1. + bt * (cos_teta - 1.)  # remove angle dependency for IMF under 1 nT
         # endif
-        x = [1., cosa, btx, btx * cosa, swvel, swp]
+        x = [1., cos_teta, E_bt, E_bt * cos_teta, swvel, PSW]  # массив W формула (2) со страницы 3 пдф
         c = self.reader.bndya
         self.bndyfitr = sum([x_i * c_i for x_i, c_i in zip(x,
                                                            c)])  # R (1) стр 3 from Weimer-2005-Journal_of_Geophysical_Research%253A_Space_Physics_%25281978-2012%2529.pdf
 
-        return
+        return  # end func
 
-    def setmodel(self, by: float, bz: float, tilt: float, swvel: float, swden: float, file_path: str, model: str):
+    def setmodel(self, by: float, bz: float, tilt: float, swvel: float, swden: float, file_path: str,
+                 model: str) -> None:
+        """
+        Инициализация
+        :param by:
+        :param bz:
+        :param tilt: угол(?)
+        :param swvel: скорость солнечного ветра(?)
+        :param swden: плотность солнечного ветра(?)
+        :param file_path: папка с исходными файлами
+        :param model: название модели
+        """
 
         assert model.strip() in ['epot', 'bpot'], "('>>> setmodel: model must be either epot or bpot')"
 
-        if (model.strip() == 'epot'):
+        if model.strip() == 'epot':
             self.reader.read_potential(file_path + '//W05scEpot.dat')
         else:
             self.reader.read_potential(file_path + '//W05scBpot.dat')
@@ -360,31 +386,22 @@ class Calculator:
             cos2a = 1. + bt * (cos2a - 1.)
             sina = bt * sina
             sin2a = bt * sin2a
-            pass
+            pass  # endif
 
         cfits: List[List[float]] = self.reader.schfits  # ! schfits(d1_pot, csize) is in module read_data
+        assert len(cfits) == self.reader.d1_pot, "len(self.reader.schfits)==self.reader.d1_pot"
+        assert all(map(lambda l: len(l) == self.reader.csize,
+                       cfits)), "len(self.reader.schfits[i])==self.reader.csize"
 
         a: List[float] = [c0, swe, stilt, stilt2, swp,
                           swe * cosa, stilt * cosa, stilt2 * cosa, swp * cosa,
                           swe * sina, stilt * sina, stilt2 * sina, swp * sina,
                           swe * cos2a, swe * sin2a]
 
-        if (model.strip() == 'epot'):
-            # esphc(:) = 0.
-            for j in range(self.reader.csize):
-                for i in range(self.reader.d1_pot):
-                    self.esphc[j] += cfits[i][j] * a[i]
-                pass
-            pass
-            # write(6,"('setmodel: esphc=',/,(6e12.4))") esphc
+        result = np.dot(a, cfits)
+
+        if model.strip() == 'epot':
+            self.esphc = result
         else:
-            # bsphc(:) = 0.
-            for j in range(self.reader.csize):
-                for i in range(self.reader.d1_pot):
-                    self.bsphc[j] += cfits[i][j] * a[i]
-                    pass
-                pass
-            # pass
-            # pass
-            # write(6,"('setmodel: bsphc=',/,(6e12.4))") bsphc
+            self.bsphc = result
         return
