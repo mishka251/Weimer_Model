@@ -10,9 +10,9 @@ class Calculator:
     reader: Reader = Reader()
 
     bndyfitr: float
-    esphc: List[float] = [0] * reader.csize
-    bsphc: List[float] = [0] * reader.csize
-    tmat: List[List[float]] = np.zeros((3, 3), np.float)
+    esphc: np.ndarray[float]  # = [0] * reader.csize
+    bsphc: np.ndarray[float]  # = [0] * reader.csize
+    tmat: np.ndarray[float] = np.zeros((3, 3), np.float)
     mxtablesize: int = 200
 
     plmtable: List[List[float]] = np.zeros((mxtablesize, reader.csize))
@@ -112,7 +112,6 @@ class Calculator:
             for i in range(table_size):
                 a[i] *= (x[i] * ((k + m - 1.) * (k + m) - xn) / (k * (k + m)))
                 table[i] += a[i]
-                pass
 
             k += 1
 
@@ -120,8 +119,6 @@ class Calculator:
                 div = abs(table[i])
                 div = max(div, 1e-6)
                 tmp[i] = abs(a[i]) / div
-                pass
-            pass
 
         ans = km_n(m, r)
         return [t * ans for t in table]
@@ -129,18 +126,18 @@ class Calculator:
     prev_th0 = 1e36
 
     def scplm(self, index: int, colat: float) -> Tuple[float, float]:
-        ls = self.reader.ls
-        ms = self.reader.ms
-        ab = self.reader.ab
+        ls: List[int] = self.reader.ls
+        ms: List[int] = self.reader.ms
+        ab: List[float] = self.reader.ab
         skip: bool = False
-        th0 = self.bndyfitr
+        th0: float = self.bndyfitr
         if self.prev_th0 != th0:
-            self.tablesize = 3 * int(round((th0)))
+            self.tablesize = 3 * int(round(th0))
             assert self.tablesize <= self.mxtablesize, \
                 f"('>>> tablesize > mxtablesize: tablesize={self.tablesize} mxtablesize={self.mxtablesize} tn0={th0}"
 
             self.colattable = [i * (th0 / float(self.tablesize - 1)) for i in range(self.tablesize)]
-            cth = [cos(radians(col)) for col in self.colattable]
+            cth: List[float] = [cos(radians(col)) for col in self.colattable]
             self.prev_th0 = th0
             self.nlms: List[float] = [0] * self.reader.csize
 
@@ -164,8 +161,8 @@ class Calculator:
                 pass  # end for
             pass  # endif
 
-        nlm = self.nlms[index]
-        colata = [colat]
+        nlm: float = self.nlms[index]
+        colata: List[float] = [colat]
 
         tmp = [self.plmtable[i][index] for i in range(self.tablesize)]
 
@@ -175,9 +172,9 @@ class Calculator:
     def mpfac(self, lat: float, mlt: float, fill: float) -> float:
         """
         Вычисление чеего-то в заданной точке
-        :param lat:
-        :param mlt:
-        :param fill:
+        :param lat: широта(градусы)
+        :param mlt: долгтта(0-23 - часовой пояс?)
+        :param fill: значение по умолчанию(нет аврорального овала)
         :return: fac:float
         """
         ls = self.reader.ls  # сокращения для констант из файла
@@ -236,9 +233,9 @@ class Calculator:
         """
         Расчёт чего-то в заданной точке
         :param lat:широта(градусы)
-        :param mlt: долгота(?)
-        :param fill:
-        :return: epot:float
+        :param mlt: долгота(0-23 часовой пояс?)
+        :param fill:значение по умолчанию (если нет аврорального овала)
+        :return: epot:float (электрический потенциал?)
         """
 
         csize = self.reader.csize  # сокращения для констант из файла
@@ -317,8 +314,8 @@ class Calculator:
                  model: str) -> None:
         """
         Инициализация
-        :param by:
-        :param bz:
+        :param by: проекции геомагнитного поля?
+        :param bz:проекции геомагнитного поля?
         :param tilt: угол(?)
         :param swvel: скорость солнечного ветра(?)
         :param swden: плотность солнечного ветра(?)
@@ -336,16 +333,18 @@ class Calculator:
         self.reader.read_schatable(file_path + '//SCHAtable.dat')
 
         bt: float = sqrt(by ** 2 + bz ** 2)
-        angle: float = degrees(atan2(by, bz))
+        angle: float = degrees(atan2(by, bz))  # градусы
         self.setboundary(angle, bt, tilt, swvel, swden, file_path)
 
         stilt: float = sin(degrees(tilt))
         stilt2: float = stilt ** 2
-        sw: float = bt * swvel / 1000.
+
+        sw: float = bt * swvel / 1000.  # параметры солнечного ветра?
         swe: float = (1. - exp(-sw * self.reader.ex_pot[1])) * sw ** self.reader.ex_pot[0]
-        c0: float = 1.
         swp: float = swvel ** 2 * swden * 1.6726e-6
-        rang: float = radians(angle)
+
+        c0: float = 1.
+        rang: float = radians(angle)  # радианы
         cosa: float = cos(rang)
         sina: float = sin(rang)
         cos2a: float = cos(2. * rang)
@@ -358,7 +357,9 @@ class Calculator:
             sin2a = bt * sin2a
             pass  # endif
 
-        cfits: List[List[float]] = self.reader.schfits  # ! schfits(d1_pot, csize) is in module read_data
+        cfits: List[
+            List[float]] = self.reader.schfits  # ! schfits(d1_pot, csize) is in module read_data коэффициенты модели?
+
         assert len(cfits) == self.reader.d1_pot, "len(self.reader.schfits)==self.reader.d1_pot"
         assert all(map(lambda l: len(l) == self.reader.csize,
                        cfits)), "len(self.reader.schfits[i])==self.reader.csize"
@@ -366,9 +367,9 @@ class Calculator:
         a: List[float] = [c0, swe, stilt, stilt2, swp,
                           swe * cosa, stilt * cosa, stilt2 * cosa, swp * cosa,
                           swe * sina, stilt * sina, stilt2 * sina, swp * sina,
-                          swe * cos2a, swe * sin2a]
+                          swe * cos2a, swe * sin2a]  # массив А (6) из пдф?
 
-        result = np.dot(a, cfits)
+        result = np.dot(a, cfits)  # или это массив А из формулы (6)?
 
         if model.strip() == 'epot':
             self.esphc = result
