@@ -10,9 +10,9 @@ class Calculator:
     reader: Reader = Reader()
 
     bndyfitr: float
-    esphc: np.ndarray[float]  # = [0] * reader.csize
-    bsphc: np.ndarray[float]  # = [0] * reader.csize
-    tmat: np.ndarray[float] = np.zeros((3, 3), np.float)
+    esphc: np.ndarray  # = [0] * reader.csize
+    bsphc: np.ndarray  # = [0] * reader.csize
+    tmat: np.ndarray = np.zeros((3, 3), np.float)
     mxtablesize: int = 200
 
     plmtable: List[List[float]] = np.zeros((mxtablesize, reader.csize))
