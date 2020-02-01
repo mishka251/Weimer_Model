@@ -14,8 +14,10 @@ file_path = "./"
 
 fill = 1.e36
 
-epot = np.zeros((nlon, nlat), np.float)
-fac = np.zeros((nlon, nlat), np.float)
+coeff=10
+
+epot = np.zeros((coeff*nlon, nlat), np.float)
+fac = np.zeros((coeff*nlon, nlat), np.float)
 
 calc = Calculator()
 calc.setmodel(by, bz, tilt, swvel, swden, file_path, 'epot')
@@ -49,20 +51,21 @@ mlat = [-90., -88.1238292398491, -86.2386359278657, -84.3344382773342,
         76.331796630125, 78.4094552099168, 80.4295344892687, 82.4013318763434,
         84.3344382773342, 86.2386359278657, 88.123829239849, 90.]
 
-mlt = [i for i in range(nlon)]
-lon = [15 * i for i in range(nlon)]
 
-for i in range(nlon):
+mlt = [i/coeff for i in range(coeff*nlon)]
+lon = [15 * i for i in range(coeff*nlon)]
+
+for i in range(coeff*nlon):
     for j in range(nlat):
         epot[i][j] = calc.epotval(mlat[j], mlt[i], fill)
 
 calc.setmodel(by, bz, tilt, swvel, swden, file_path, 'bpot')
 
-for i in range(nlon):
+for i in range(coeff*nlon):
     for j in range(nlat):
         fac[i][j] = calc.mpfac(mlat[j], mlt[i], fill)
 
-datfile = 'wei05sc_epot_f90.dat '
+datfile = 'wei05sc_epot_f90_big.dat'
 file = open(file=datfile, mode="w")
 file.write(str(nlon) + "  " + str(nlat) + "\n")
 np.savetxt(file, mlt)  # file.write(str(mlt))
@@ -71,7 +74,7 @@ np.savetxt(file, epot)  # file.write(str(epot))
 file.close()
 print(f"('Wrote ascii file '{datfile})")
 
-datfile = 'wei05sc_fac_f90.dat '
+datfile = 'wei05sc_fac_f90_big.dat'
 file = open(datfile, mode="w")
 file.write(f"{nlon}, {nlat}\n")
 np.savetxt(file, mlt)  # file.write(str(mlt))

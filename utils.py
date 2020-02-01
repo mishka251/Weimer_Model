@@ -27,12 +27,12 @@ def interpol_quad(v: List[float], x: List[float], u: List[float]) -> List[float]
             p[i] = 0
             continue  # cycle! bug fix by btf 12/23/09
         # endif
-        x1 = x[ix]
-        x0 = x[ix - 1]
-        x2 = x[ix + 1]
-        p_i = v[ix - 1] * (u[i] - x1) * (u[i] - x2) / ((x0 - x1) * (x0 - x2)) + \
-              v[ix] * (u[i] - x0) * (u[i] - x2) / ((x1 - x0) * (x1 - x2)) + \
-              v[ix + 1] * (u[i] - x0) * (u[i] - x1) / ((x2 - x0) * (x2 - x1))
+        x1: float = x[ix]
+        x0: float = x[ix - 1]
+        x2: float = x[ix + 1]
+        p_i: float = v[ix - 1] * (u[i] - x1) * (u[i] - x2) / ((x0 - x1) * (x0 - x2)) + \
+                     v[ix] * (u[i] - x0) * (u[i] - x2) / ((x1 - x0) * (x1 - x2)) + \
+                     v[ix + 1] * (u[i] - x0) * (u[i] - x1) / ((x2 - x0) * (x2 - x1))
 
         p[i] = p_i
     return p
