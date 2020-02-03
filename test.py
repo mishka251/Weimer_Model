@@ -1,12 +1,17 @@
 import numpy as np
 from w05sc import Calculator
 
-by = 0.
-bz = -5.
-tilt = 0.
+from constants import Constants, ConstantsStatic, ConstantsTaken
 
-swvel = 450.
-swden = 9.
+# by = 0.
+# bz = -5.
+# tilt = 0.
+#
+# swvel = 450.
+# swden = 9.
+
+consts:Constants = ConstantsStatic()
+
 file_path = "./"
 
 fill = 1.e36
@@ -25,13 +30,13 @@ epot = np.zeros((coeff * nlon, nlat), np.float)
 fac = np.zeros((coeff * nlon, nlat), np.float)
 
 calc = Calculator()
-calc.setmodel(by, bz, tilt, swvel, swden, file_path, 'epot')
+calc.setmodel(consts.by, consts.bz, consts.tilt, consts.swvel, consts.swden, file_path, 'epot')
 
 for i in range(coeff * nlon):
     for j in range(nlat):
         epot[i][j] = calc.epotval(mlat[j], mlt[i], fill)
 
-calc.setmodel(by, bz, tilt, swvel, swden, file_path, 'bpot')
+calc.setmodel(consts.by, consts.bz, consts.tilt, consts.swvel, consts.swden, file_path, 'bpot')
 
 for i in range(coeff * nlon):
     for j in range(nlat):
