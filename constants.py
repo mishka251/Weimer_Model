@@ -6,6 +6,13 @@ from datetime import datetime
 
 
 class PlasmaInfo:
+    """
+    Информация о плазме солнечного ветра
+    :speed - скорость км/с
+    :density плотность частиц/см^2
+    :temperature - температура К
+
+    """
     speed: float
     density: float
     temperature: float
@@ -15,8 +22,28 @@ class PlasmaInfo:
         self.density = float(items[1])
         self.temperature = float(items[3])
 
+    @property
+    def pressure(self) -> float:
+        """
+        давление солнечного ветра?
+        единицы измерения? единиц/c^2 *10^??
+        :return:
+        """
+        return self.density * self.speed ** 2 * 1.6726e-6
+
 
 class MagInfo:
+    """
+    Информация о магнтином поле
+    :bx
+    :by
+    :bz
+
+    :lon
+    :lat
+
+    :bt
+    """
     bx: float
     by: float
     bz: float
@@ -34,6 +61,15 @@ class MagInfo:
 
 
 class Constants:
+    """
+    :by
+    :bz
+
+    :swvel
+    :swden
+
+    :tilt
+    """
     by: float
     bz: float
     tilt: float
@@ -43,6 +79,10 @@ class Constants:
 
 
 class ConstantsStatic(Constants):
+    """
+    статически заданные константы из примера
+    """
+
     def __init__(self):
         self.by = 0
         self.bz = -5
@@ -60,6 +100,9 @@ def get_json_from_url(url: str):
 
 
 class ConstantsTaken(Constants):
+    """
+    Константы, получаемые с сервисов из сети
+    """
     tilt: float = 0
 
     def __init__(self):
@@ -71,7 +114,7 @@ class ConstantsTaken(Constants):
         plasma: List[List[str]] = get_json_from_url(base_url + plasma_file)
 
         plasma_format: List[str] = ['time_tag', 'density', 'speed', 'temperature']
-        mag_format: list[str] = ['time_tag', 'bx_gsm', 'by_gsm', 'bz_gsm', 'lon_gsm', 'lat_gsm', 'bt']
+        mag_format: List[str] = ['time_tag', 'bx_gsm', 'by_gsm', 'bz_gsm', 'lon_gsm', 'lat_gsm', 'bt']
 
         assert mag[0] == mag_format, "Неверный формат файла mag"
         assert plasma[0] == plasma_format, "Неверный формаьт фалйа plasma"
