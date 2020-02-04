@@ -10,7 +10,7 @@ from constants import Constants, ConstantsStatic, ConstantsTaken
 # swvel = 450.
 # swden = 9.
 
-consts:Constants = ConstantsStatic()
+consts:Constants = ConstantsTaken()
 
 file_path = "./"
 
