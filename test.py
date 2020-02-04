@@ -12,7 +12,7 @@ from constants import Constants, ConstantsStatic, ConstantsTaken
 
 consts:Constants = ConstantsTaken()
 
-file_path = "./"
+file_path = "./input_data/"
 
 fill = 1.e36
 
@@ -42,7 +42,7 @@ for i in range(coeff * nlon):
     for j in range(nlat):
         fac[i][j] = calc.mpfac(mlat[j], mlt[i], fill)
 
-datfile = 'wei05sc_epot_f90_big.dat'
+datfile = 'output_data/wei05sc_epot_f90_big.dat'
 file = open(file=datfile, mode="w")
 file.write(f"{coeff*nlon} {nlat}\n")
 np.savetxt(file, mlt)  # file.write(str(mlt))
@@ -51,7 +51,7 @@ np.savetxt(file, epot)  # file.write(str(epot))
 file.close()
 print(f"('Wrote ascii file '{datfile})")
 
-datfile = 'wei05sc_fac_f90_big.dat'
+datfile = 'output_data/wei05sc_fac_f90_big.dat'
 file = open(datfile, mode="w")
 file.write(f"{coeff*nlon} {nlat}\n")
 np.savetxt(file, mlt)  # file.write(str(mlt))
