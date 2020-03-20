@@ -51,7 +51,7 @@ class Calculator:
         """
         ???
         :param lat: широта
-        :param mlt:
+        :param mlt:magnetic local time
         :return:  inside: int, phir: float, colat: float
         """
         tlat: float
@@ -233,7 +233,7 @@ class Calculator:
         """
         Расчёт чего-то в заданной точке
         :param lat:широта(градусы)
-        :param mlt: долгота(0-23 часовой пояс?)
+        :param mlt: долгота(0-23 часовой пояс?) magnetic local time
         :param fill:значение по умолчанию (если нет аврорального овала)
         :return: epot:float (электрический потенциал?)
         """

@@ -23,6 +23,7 @@ nlon: int = 25
 
 coeff = 10
 
+#TODO magnetic local time
 mlt = [i / coeff for i in range(coeff * nlon)]
 lon = [15 * i for i in range(coeff * nlon)]
 
